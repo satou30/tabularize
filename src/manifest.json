@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "tabularize",
+  "version": "1.0.0",
+  "description": "閲覧履歴をURL/ドメイン単位で集計し、よく見るページを表示。開いているタブをドメイン単位でグループ化します。",
+  "permissions": [
+    "history",
+    "tabs",
+    "tabGroups",
+    "storage",
+    "alarms",
+    "sidePanel"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "tabularize"
+  }
+}
