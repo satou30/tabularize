@@ -12,46 +12,46 @@
     </header>
 
     <main class="main">
-      <!-- URL 一覧 -->
+      <!-- URL list -->
       <section class="section section--grow">
         <div class="section__head">
-          <h2 class="section__title">URL 一覧</h2>
+          <h2 class="section__title" data-i18n="urlSectionTitle">URL 一覧</h2>
           <div class="section__controls">
             <input
               type="search"
               id="url-search"
               class="search-input"
-              placeholder="検索..."
+              data-i18n-placeholder="searchPlaceholder"
             />
-            <button type="button" id="sort-toggle" class="btn btn--sort">訪問数順</button>
+            <button type="button" id="sort-toggle" class="btn btn--sort"></button>
           </div>
         </div>
         <ul class="list" id="url-list"></ul>
       </section>
 
-      <!-- ドメイン一覧 -->
+      <!-- Domain list -->
       <section class="section section--grow">
         <div class="section__head">
-          <h2 class="section__title">ドメイン一覧</h2>
+          <h2 class="section__title" data-i18n="domainSectionTitle">ドメイン一覧</h2>
           <div class="section__controls">
             <input
               type="search"
               id="domain-search"
               class="search-input"
-              placeholder="検索..."
+              data-i18n-placeholder="searchPlaceholder"
             />
           </div>
         </div>
         <ul class="list" id="domain-list"></ul>
       </section>
 
-      <!-- 一括操作 -->
+      <!-- Actions -->
       <section class="section section--actions">
-        <h2 class="section__title">一括操作</h2>
+        <h2 class="section__title" data-i18n="actionsSectionTitle">一括操作</h2>
         <div class="actions">
-          <button type="button" id="group-all-btn" class="btn btn--primary">全タブをグループ化</button>
-          <button type="button" id="sort-tabs-toggle" class="btn btn--sort-tabs">タブ並び替え: OFF</button>
-          <button type="button" id="reset-btn" class="btn btn--danger">データをリセット</button>
+          <button type="button" id="group-all-btn" class="btn btn--primary" data-i18n="groupAllBtn"></button>
+          <button type="button" id="sort-tabs-toggle" class="btn btn--sort-tabs"></button>
+          <button type="button" id="reset-btn" class="btn btn--danger" data-i18n="resetBtn"></button>
         </div>
         <p id="error-message" class="error-message" hidden></p>
       </section>

@@ -1,3 +1,24 @@
+// ── i18n ──────────────────────────────────────────────────────────────────────
+
+/**
+ * @param {string} key
+ * @param {string[]} [subs]
+ * @returns {string}
+ */
+function t(key, subs) {
+  return chrome.i18n.getMessage(key, subs) || key;
+}
+
+function applyI18n() {
+  document.documentElement.lang = chrome.i18n.getUILanguage().split("-")[0];
+  for (const el of document.querySelectorAll("[data-i18n]")) {
+    el.textContent = t(el.dataset.i18n);
+  }
+  for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  }
+}
+
 // ── State ─────────────────────────────────────────────────────────────────────
 
 /** @type {Record<string, { count: number; title: string; lastVisitTime: number }>} */
@@ -108,7 +129,7 @@ function renderUrlList() {
   const entries = filteredSortedUrls();
 
   if (entries.length === 0) {
-    list.innerHTML = '<li class="list__empty">データがありません</li>';
+    list.innerHTML = `<li class="list__empty">${t("noData")}</li>`;
     return;
   }
 
@@ -121,7 +142,7 @@ function renderUrlList() {
       <li class="item--url" data-url="${esc(url)}" tabindex="0">
         <span class="item__title" title="${esc(url)}">${esc(e.title || url)}</span>
         <span class="item__url">${esc(url)}</span>
-        <span class="item__count">${e.count}回</span>
+        <span class="item__count">${t("visitCount", [String(e.count)])}</span>
       </li>`,
       )
       .join("") +
@@ -153,7 +174,7 @@ function renderDomainList() {
   entries.sort(([, a], [, b]) => b.count - a.count);
 
   if (entries.length === 0) {
-    list.innerHTML = '<li class="list__empty">データがありません</li>';
+    list.innerHTML = `<li class="list__empty">${t("noData")}</li>`;
     return;
   }
 
@@ -163,12 +184,12 @@ function renderDomainList() {
       return `
       <li class="item--domain">
         <span class="item__domain" title="${esc(domain)}">${esc(domain)}</span>
-        <span class="item__count">${data.count}回</span>
+        <span class="item__count">${t("visitCount", [String(data.count)])}</span>
         <div class="item__actions">
-          <button type="button" class="btn btn--group"   data-action="group"      data-domain="${esc(domain)}">グループ化</button>
-          <button type="button" class="btn btn--ungroup" data-action="ungroup"    data-domain="${esc(domain)}">解除</button>
-          <button type="button" class="btn btn--auto-group ${isAuto ? "is-active" : ""}" data-action="toggle-auto-group" data-domain="${esc(domain)}" title="常にグループ化">${isAuto ? "常時▶" : "常時"}</button>
-          <button type="button" class="btn btn--exclude" data-action="exclude"    data-domain="${esc(domain)}">除外</button>
+          <button type="button" class="btn btn--group"   data-action="group"             data-domain="${esc(domain)}">${t("groupBtn")}</button>
+          <button type="button" class="btn btn--ungroup" data-action="ungroup"           data-domain="${esc(domain)}">${t("ungroupBtn")}</button>
+          <button type="button" class="btn btn--auto-group ${isAuto ? "is-active" : ""}" data-action="toggle-auto-group" data-domain="${esc(domain)}" title="${t(isAuto ? "autoGroupOn" : "autoGroupOff")}">${t(isAuto ? "autoGroupOn" : "autoGroupOff")}</button>
+          <button type="button" class="btn btn--exclude" data-action="exclude"           data-domain="${esc(domain)}">${t("excludeBtn")}</button>
         </div>
       </li>`;
     })
@@ -182,12 +203,12 @@ function renderAll() {
 
 function updateSortLabel() {
   document.getElementById("sort-toggle").textContent =
-    sortBy === "count" ? "訪問数順" : "最終訪問日順";
+    sortBy === "count" ? t("sortByCount") : t("sortByLastVisit");
 }
 
 function updateSortTabsBtn() {
   const btn = document.getElementById("sort-tabs-toggle");
-  btn.textContent = `タブ並び替え: ${sortTabsEnabled ? "ON" : "OFF"}`;
+  btn.textContent = t(sortTabsEnabled ? "sortTabsOn" : "sortTabsOff");
   btn.classList.toggle("is-active", sortTabsEnabled);
 }
 
@@ -299,10 +320,10 @@ function setupEvents() {
 
       if (action === "group") {
         const res = await send({ type: "GROUP_DOMAIN", domain });
-        if (res?.error) showError(`グループ化に失敗しました: ${res.error}`);
+        if (res?.error) showError(t("errGroupFailed", [res.error]));
       } else if (action === "ungroup") {
         const res = await send({ type: "UNGROUP_DOMAIN", domain });
-        if (res?.error) showError(`グループ解除に失敗しました: ${res.error}`);
+        if (res?.error) showError(t("errUngroupFailed", [res.error]));
       } else if (action === "toggle-auto-group") {
         await toggleAutoGroup(domain);
       } else if (action === "exclude") {
@@ -315,7 +336,7 @@ function setupEvents() {
     .getElementById("group-all-btn")
     .addEventListener("click", async () => {
       const res = await send({ type: "GROUP_ALL" });
-      if (res?.error) showError(`グループ化に失敗しました: ${res.error}`);
+      if (res?.error) showError(t("errGroupFailed", [res.error]));
     });
 
   // Sort tabs toggle
@@ -327,16 +348,16 @@ function setupEvents() {
       updateSortTabsBtn();
       if (sortTabsEnabled) {
         const res = await send({ type: "SORT_TABS" });
-        if (res?.error) showError(`ソートに失敗しました: ${res.error}`);
+        if (res?.error) showError(t("errSortFailed", [res.error]));
       }
     });
 
   // Reset
   document.getElementById("reset-btn").addEventListener("click", async () => {
-    if (!confirm("データをリセットして履歴を再取得しますか？")) return;
+    if (!confirm(t("confirmReset"))) return;
     const res = await send({ type: "RESET_DATA" });
     if (res?.error) {
-      showError(`リセットに失敗しました: ${res.error}`);
+      showError(t("errResetFailed", [res.error]));
     } else {
       await loadData();
       renderAll();
@@ -363,6 +384,7 @@ function setupEvents() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
+  applyI18n();
   await loadData();
   setupEvents();
   updateSortLabel();

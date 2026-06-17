@@ -1,0 +1,43 @@
+{
+  "appName": { "message": "tabularize" },
+  "appDesc": {
+    "message": "閲覧履歴をURL/ドメイン単位で集計し、よく見るページを表示。開いているタブをドメイン単位でグループ化します。"
+  },
+  "urlSectionTitle": { "message": "URL 一覧" },
+  "domainSectionTitle": { "message": "ドメイン一覧" },
+  "actionsSectionTitle": { "message": "一括操作" },
+  "searchPlaceholder": { "message": "検索..." },
+  "sortByCount": { "message": "訪問数順" },
+  "sortByLastVisit": { "message": "最終訪問日順" },
+  "groupAllBtn": { "message": "全タブをグループ化" },
+  "sortTabsOff": { "message": "タブ並び替え: OFF" },
+  "sortTabsOn": { "message": "タブ並び替え: ON" },
+  "resetBtn": { "message": "データをリセット" },
+  "noData": { "message": "データがありません" },
+  "groupBtn": { "message": "グループ化" },
+  "ungroupBtn": { "message": "解除" },
+  "autoGroupOff": { "message": "常時" },
+  "autoGroupOn": { "message": "常時▶" },
+  "excludeBtn": { "message": "除外" },
+  "visitCount": {
+    "message": "$COUNT$回",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "confirmReset": { "message": "データをリセットして履歴を再取得しますか？" },
+  "errGroupFailed": {
+    "message": "グループ化に失敗しました: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errUngroupFailed": {
+    "message": "グループ解除に失敗しました: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errSortFailed": {
+    "message": "ソートに失敗しました: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errResetFailed": {
+    "message": "リセットに失敗しました: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  }
+}

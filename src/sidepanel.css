@@ -381,3 +381,69 @@ body {
   color: var(--danger);
   font-size: 13px;
 }
+
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #202124;
+    --surface: #292a2d;
+    --border: #3c4043;
+    --text: #e8eaed;
+    --text-sub: #9aa0a6;
+    --primary: #8ab4f8;
+    --primary-hover: #aecbfa;
+    --danger: #f28b82;
+    --danger-hover: #ee675c;
+  }
+
+  .btn--sort:hover {
+    background: #3c4043;
+  }
+
+  .btn--group {
+    background: #1b3320;
+    color: #81c784;
+    border-color: #2d5a32;
+  }
+
+  .btn--group:hover {
+    background: #245028;
+  }
+
+  .btn--ungroup:hover {
+    background: #3c4043;
+  }
+
+  .btn--exclude {
+    background: #3a2c00;
+    color: #fdd835;
+    border-color: #5a4500;
+  }
+
+  .btn--exclude:hover {
+    background: #4a3800;
+  }
+
+  .btn--auto-group:hover {
+    background: #3c4043;
+  }
+
+  .btn--auto-group.is-active {
+    background: #1a3a5c;
+    color: #8ab4f8;
+    border-color: #4a7ab5;
+  }
+
+  .btn--auto-group.is-active:hover {
+    background: #1e4976;
+  }
+
+  .btn--sort-tabs:hover {
+    background: #3c4043;
+  }
+
+  .error-message {
+    background: #4e1f1f;
+  }
+}

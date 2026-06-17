@@ -1,0 +1,43 @@
+{
+  "appName": { "message": "tabularize" },
+  "appDesc": {
+    "message": "Aggregate browsing history by URL/domain and group open tabs by domain."
+  },
+  "urlSectionTitle": { "message": "URL List" },
+  "domainSectionTitle": { "message": "Domain List" },
+  "actionsSectionTitle": { "message": "Actions" },
+  "searchPlaceholder": { "message": "Search..." },
+  "sortByCount": { "message": "By visits" },
+  "sortByLastVisit": { "message": "By last visit" },
+  "groupAllBtn": { "message": "Group All Tabs" },
+  "sortTabsOff": { "message": "Sort Tabs: OFF" },
+  "sortTabsOn": { "message": "Sort Tabs: ON" },
+  "resetBtn": { "message": "Reset Data" },
+  "noData": { "message": "No data" },
+  "groupBtn": { "message": "Group" },
+  "ungroupBtn": { "message": "Ungroup" },
+  "autoGroupOff": { "message": "Auto" },
+  "autoGroupOn": { "message": "Auto▶" },
+  "excludeBtn": { "message": "Exclude" },
+  "visitCount": {
+    "message": "$COUNT$ visits",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "confirmReset": { "message": "Reset all data and re-fetch history?" },
+  "errGroupFailed": {
+    "message": "Failed to group: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errUngroupFailed": {
+    "message": "Failed to ungroup: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errSortFailed": {
+    "message": "Failed to sort: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "errResetFailed": {
+    "message": "Failed to reset: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
+  }
+}
