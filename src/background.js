@@ -234,6 +234,34 @@ async function sortTabsInWindow(windowId) {
   }
 }
 
+/**
+ * Close duplicate tabs across all windows, keeping the most recently opened
+ * (highest tab id) for each unique URL.
+ * @returns {Promise<{ closed: number }>}
+ */
+async function deduplicateTabs() {
+  const allTabs = await chrome.tabs.query({});
+
+  /** @type {Map<string, chrome.tabs.Tab[]>} */
+  const byUrl = new Map();
+  for (const tab of allTabs) {
+    if (!tab.url || !tab.id) continue;
+    const group = byUrl.get(tab.url) ?? [];
+    group.push(tab);
+    byUrl.set(tab.url, group);
+  }
+
+  const toClose = [];
+  for (const tabs of byUrl.values()) {
+    if (tabs.length <= 1) continue;
+    tabs.sort((a, b) => b.id - a.id); // highest id = last opened
+    for (let i = 1; i < tabs.length; i++) toClose.push(tabs[i].id);
+  }
+
+  if (toClose.length > 0) await chrome.tabs.remove(toClose);
+  return { closed: toClose.length };
+}
+
 // ── Message handler ───────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -262,6 +290,10 @@ async function handleMessage(message) {
       const win = await chrome.windows.getLastFocused({ populate: false });
       await sortTabsInWindow(win.id);
       return { success: true };
+    }
+    case "DEDUP_TABS": {
+      const result = await deduplicateTabs();
+      return { success: true, closed: result.closed };
     }
     case "RESET_DATA":
       await chrome.storage.local.remove("urlEntries");

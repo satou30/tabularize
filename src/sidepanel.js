@@ -270,14 +270,23 @@ async function send(msg) {
   return chrome.runtime.sendMessage(msg);
 }
 
-/** @param {string} text */
-function showError(text) {
+/**
+ * @param {string} text
+ * @param {"error" | "info"} [kind]
+ */
+function showNotice(text, kind = "error") {
   const el = document.getElementById("error-message");
   el.textContent = text;
+  el.classList.toggle("error-message--info", kind === "info");
   el.hidden = false;
   setTimeout(() => {
     el.hidden = true;
   }, 5000);
+}
+
+/** @param {string} text */
+function showError(text) {
+  showNotice(text, "error");
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
@@ -349,6 +358,20 @@ function setupEvents() {
       if (sortTabsEnabled) {
         const res = await send({ type: "SORT_TABS" });
         if (res?.error) showError(t("errSortFailed", [res.error]));
+      }
+    });
+
+  // Deduplicate tabs
+  document
+    .getElementById("dedup-tabs-btn")
+    .addEventListener("click", async () => {
+      const res = await send({ type: "DEDUP_TABS" });
+      if (res?.error) {
+        showError(t("errDedupFailed", [res.error]));
+      } else if (res?.closed === 0) {
+        showNotice(t("dedupNone"), "info");
+      } else {
+        showNotice(t("dedupSuccess", [String(res.closed)]), "info");
       }
     });
 

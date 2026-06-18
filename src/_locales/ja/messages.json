@@ -39,5 +39,15 @@
   "errResetFailed": {
     "message": "リセットに失敗しました: $ERROR$",
     "placeholders": { "error": { "content": "$1" } }
+  },
+  "dedupTabsBtn": { "message": "重複タブを閉じる" },
+  "dedupSuccess": {
+    "message": "$COUNT$件の重複タブを閉じました",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "dedupNone": { "message": "重複タブはありませんでした" },
+  "errDedupFailed": {
+    "message": "重複解消に失敗しました: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
   }
 }

@@ -363,6 +363,16 @@ body {
   flex-wrap: wrap;
 }
 
+.btn--dedup {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border: 1px solid #ce93d8;
+}
+
+.btn--dedup:hover {
+  background: #e1bee7;
+}
+
 /* ── Virtual scroll sentinel ─────────────────────────────────────────────── */
 
 #url-sentinel {
@@ -380,6 +390,11 @@ body {
   background: #fce8e6;
   color: var(--danger);
   font-size: 13px;
+}
+
+.error-message--info {
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 /* ── Dark mode ───────────────────────────────────────────────────────────── */
@@ -443,7 +458,22 @@ body {
     background: #3c4043;
   }
 
+  .btn--dedup {
+    background: #2d1b3d;
+    color: #ce93d8;
+    border-color: #6a3d8a;
+  }
+
+  .btn--dedup:hover {
+    background: #3d2554;
+  }
+
   .error-message {
     background: #4e1f1f;
+  }
+
+  .error-message--info {
+    background: #1b3a20;
+    color: #81c784;
   }
 }

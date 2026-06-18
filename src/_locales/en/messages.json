@@ -39,5 +39,15 @@
   "errResetFailed": {
     "message": "Failed to reset: $ERROR$",
     "placeholders": { "error": { "content": "$1" } }
+  },
+  "dedupTabsBtn": { "message": "Close Duplicate Tabs" },
+  "dedupSuccess": {
+    "message": "Closed $COUNT$ duplicate tabs",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "dedupNone": { "message": "No duplicate tabs found" },
+  "errDedupFailed": {
+    "message": "Failed to deduplicate: $ERROR$",
+    "placeholders": { "error": { "content": "$1" } }
   }
 }
