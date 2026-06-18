@@ -323,28 +323,57 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === CLEANUP_ALARM) await runCleanup();
 });
 
-chrome.history.onVisited.addListener(async (item) => {
-  const { excludedDomains = [], urlEntries = {} } =
-    await chrome.storage.local.get(["excludedDomains", "urlEntries"]);
+// ── onVisited: バッチ書き込みでレースコンディションを防ぐ ───────────────────────
 
-  if (isExcludedUrl(item.url, excludedDomains)) return;
+/** @type {ReturnType<typeof setTimeout> | null} */
+let visitFlushTimer = null;
 
-  const existing = urlEntries[item.url];
-  urlEntries[item.url] = existing
-    ? {
-        ...existing,
-        count: existing.count + 1,
-        title: item.title || existing.title,
-        lastVisitTime: item.lastVisitTime || Date.now(),
-      }
-    : {
-        count: 1,
-        title: item.title || "",
-        lastVisitTime: item.lastVisitTime || Date.now(),
-      };
+/** @type {Array<chrome.history.HistoryItem>} */
+const pendingVisits = [];
+
+async function flushVisits() {
+  visitFlushTimer = null;
+  if (pendingVisits.length === 0) return;
+
+  const batch = pendingVisits.splice(0);
+  const { urlEntries = {} } = await chrome.storage.local.get("urlEntries");
+
+  for (const item of batch) {
+    if (!item.url) continue;
+    const existing = urlEntries[item.url];
+    urlEntries[item.url] = existing
+      ? {
+          ...existing,
+          count: existing.count + 1,
+          title: item.title || existing.title,
+          lastVisitTime: item.lastVisitTime || Date.now(),
+        }
+      : {
+          count: 1,
+          title: item.title || "",
+          lastVisitTime: item.lastVisitTime || Date.now(),
+        };
+  }
 
   await chrome.storage.local.set({ urlEntries });
+}
+
+chrome.history.onVisited.addListener(async (item) => {
+  const { excludedDomains = [] } =
+    await chrome.storage.local.get("excludedDomains");
+  if (isExcludedUrl(item.url, excludedDomains)) return;
+
+  pendingVisits.push(item);
+
+  // 500ms 以内の連続訪問はまとめて 1 回の storage 書き込みに集約する
+  if (visitFlushTimer) clearTimeout(visitFlushTimer);
+  visitFlushTimer = setTimeout(flushVisits, 500);
 });
+
+// ── onUpdated: ソートの並列実行を防ぐ ────────────────────────────────────────
+
+// windowId ごとにソート中かを管理し、同一ウィンドウの並列ソートをスキップする
+const sortingWindows = new Set();
 
 chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
   if (changeInfo.status !== "complete") return;
@@ -358,8 +387,13 @@ chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
     await groupDomain(hostname, tab.windowId);
   }
 
-  if (sortTabsEnabled) {
-    await sortTabsInWindow(tab.windowId);
+  if (sortTabsEnabled && !sortingWindows.has(tab.windowId)) {
+    sortingWindows.add(tab.windowId);
+    try {
+      await sortTabsInWindow(tab.windowId);
+    } finally {
+      sortingWindows.delete(tab.windowId);
+    }
   }
 });
 

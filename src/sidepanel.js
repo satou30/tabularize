@@ -89,6 +89,67 @@ function computeDomains() {
   return map;
 }
 
+// ── Date utilities ────────────────────────────────────────────────────────────
+
+/**
+ * @param {number} ts  lastVisitTime (ms)
+ * @returns {number}   今日からの日数差（今日=0, 昨日=1, ...）
+ */
+function daysDiff(ts) {
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const d = new Date(ts);
+  const itemMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round(
+    (todayMidnight.getTime() - itemMidnight.getTime()) / 86400000,
+  );
+}
+
+/**
+ * HH:MM 形式の時刻文字列
+ * @param {number} ts
+ * @returns {string}  例: "13:45"
+ */
+function formatTime(ts) {
+  if (!ts) return "";
+  return new Date(ts).toLocaleTimeString(chrome.i18n.getUILanguage(), {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Google favicon サービス URL を返す
+ * @param {string} url
+ * @returns {string}
+ */
+function getFaviconUrl(url) {
+  try {
+    const { hostname } = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=16`;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * 日付グループ見出しテキスト（今日/昨日は日付も併記）
+ * @param {number} ts
+ * @returns {string}  例: "今日 2026/06/18 (水)", "昨日 2026/06/17 (火)", "2026/06/16 (月)"
+ */
+function formatGroupHeading(ts) {
+  const diff = daysDiff(ts);
+  const dateStr = new Date(ts).toLocaleDateString(chrome.i18n.getUILanguage(), {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+  });
+  if (diff === 0) return `${t("dateToday")} ${dateStr}`;
+  if (diff === 1) return `${t("dateYesterday")} ${dateStr}`;
+  return dateStr;
+}
+
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 /** @returns {[string, { count: number; title: string; lastVisitTime: number }][]} */
@@ -119,6 +180,25 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * @param {string} url
+ * @param {{ count: number; title: string; lastVisitTime: number }} e
+ * @returns {string}
+ */
+/**
+ * @param {string} url
+ * @param {{ count: number; title: string; lastVisitTime: number }} e
+ * @param {boolean} showTime 最終訪問日順のときだけ時刻を表示する
+ * @returns {string}
+ */
+function itemHtml(url, e, showTime) {
+  const cls = showTime ? "item--url" : "item--url item--url--no-time";
+  const timeHtml = showTime
+    ? `<span class="item__time">${esc(formatTime(e.lastVisitTime))}</span>`
+    : "";
+  return `<li class="${cls}" data-url="${esc(url)}" tabindex="0">${timeHtml}<img class="item__favicon" src="${esc(getFaviconUrl(url))}" alt="" aria-hidden="true" width="16" height="16" onerror="this.style.visibility='hidden'"><span class="item__title" title="${esc(e.title || url)}">${esc(e.title || url)}</span><span class="item__count">${t("visitCount", [String(e.count)])}</span><span class="item__url">${esc(url)}</span></li>`;
+}
+
 function renderUrlList() {
   if (urlSentinelObserver) {
     urlSentinelObserver.disconnect();
@@ -134,19 +214,26 @@ function renderUrlList() {
   }
 
   const hasMore = entries.length > urlRenderLimit;
+  const slice = entries.slice(0, urlRenderLimit);
+  let html = "";
+
+  if (sortBy === "lastVisit") {
+    let lastKey = null;
+    for (const [url, e] of slice) {
+      const d = new Date(e.lastVisitTime);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (key !== lastKey) {
+        lastKey = key;
+        html += `<li class="list__date-heading" aria-hidden="true">${esc(formatGroupHeading(e.lastVisitTime))}</li>`;
+      }
+      html += itemHtml(url, e, true);
+    }
+  } else {
+    for (const [url, e] of slice) html += itemHtml(url, e, false);
+  }
+
   list.innerHTML =
-    entries
-      .slice(0, urlRenderLimit)
-      .map(
-        ([url, e]) => `
-      <li class="item--url" data-url="${esc(url)}" tabindex="0">
-        <span class="item__title" title="${esc(url)}">${esc(e.title || url)}</span>
-        <span class="item__url">${esc(url)}</span>
-        <span class="item__count">${t("visitCount", [String(e.count)])}</span>
-      </li>`,
-      )
-      .join("") +
-    (hasMore ? '<li id="url-sentinel" aria-hidden="true"></li>' : "");
+    html + (hasMore ? '<li id="url-sentinel" aria-hidden="true"></li>' : "");
 
   if (hasMore) {
     urlSentinelObserver = new IntersectionObserver(
@@ -202,8 +289,10 @@ function renderAll() {
 }
 
 function updateSortLabel() {
-  document.getElementById("sort-toggle").textContent =
+  const btn = document.getElementById("sort-toggle");
+  btn.textContent =
     sortBy === "count" ? t("sortByCount") : t("sortByLastVisit");
+  btn.classList.toggle("is-active", sortBy === "lastVisit");
 }
 
 function updateSortTabsBtn() {
@@ -270,6 +359,10 @@ async function send(msg) {
   return chrome.runtime.sendMessage(msg);
 }
 
+// タイマー ID を保持して前回のタイマーをクリアし、重複 setTimeout を防ぐ
+/** @type {ReturnType<typeof setTimeout> | null} */
+let noticeTimer = null;
+
 /**
  * @param {string} text
  * @param {"error" | "info"} [kind]
@@ -279,7 +372,9 @@ function showNotice(text, kind = "error") {
   el.textContent = text;
   el.classList.toggle("error-message--info", kind === "info");
   el.hidden = false;
-  setTimeout(() => {
+  if (noticeTimer) clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => {
+    noticeTimer = null;
     el.hidden = true;
   }, 5000);
 }
@@ -291,12 +386,31 @@ function showError(text) {
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
 
+/**
+ * storage.onChanged からの renderAll 連打を抑制するデバウンス
+ * @type {ReturnType<typeof setTimeout> | null}
+ */
+let renderDebounceTimer = null;
+
+function scheduledRenderAll() {
+  if (renderDebounceTimer) clearTimeout(renderDebounceTimer);
+  renderDebounceTimer = setTimeout(() => {
+    renderDebounceTimer = null;
+    renderAll();
+  }, 100);
+}
+
 function setupEvents() {
-  // URL search
+  // URL search (150ms デバウンスで連打を抑制)
+  let urlSearchTimer = null;
   document.getElementById("url-search").addEventListener("input", (e) => {
-    urlFilter = e.target.value;
-    urlRenderLimit = URL_BATCH;
-    renderUrlList();
+    if (urlSearchTimer) clearTimeout(urlSearchTimer);
+    urlSearchTimer = setTimeout(() => {
+      urlSearchTimer = null;
+      urlFilter = e.target.value;
+      urlRenderLimit = URL_BATCH;
+      renderUrlList();
+    }, 150);
   });
 
   // Sort toggle (by count / lastVisit)
@@ -307,10 +421,15 @@ function setupEvents() {
     renderUrlList();
   });
 
-  // Domain search
+  // Domain search (150ms デバウンス)
+  let domainSearchTimer = null;
   document.getElementById("domain-search").addEventListener("input", (e) => {
-    domainFilter = e.target.value;
-    renderDomainList();
+    if (domainSearchTimer) clearTimeout(domainSearchTimer);
+    domainSearchTimer = setTimeout(() => {
+      domainSearchTimer = null;
+      domainFilter = e.target.value;
+      renderDomainList();
+    }, 150);
   });
 
   // URL list click (delegated)
@@ -399,7 +518,7 @@ function setupEvents() {
       sortTabsEnabled = changes.sortTabsEnabled.newValue ?? false;
       updateSortTabsBtn();
     }
-    if (changes.urlEntries || changes.excludedDomains) renderAll();
+    if (changes.urlEntries || changes.excludedDomains) scheduledRenderAll();
     else if (changes.autoGroupDomains) renderDomainList();
   });
 }

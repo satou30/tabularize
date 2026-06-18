@@ -180,6 +180,16 @@ body {
   background: #e8e8e8;
 }
 
+.btn--sort.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn--sort.is-active:hover {
+  background: var(--primary-hover);
+}
+
 /* inline action buttons */
 .btn--group {
   padding: 2px 6px;
@@ -276,47 +286,69 @@ body {
   text-align: center;
 }
 
-/* URL item */
+/* URL item — 最終訪問日順: [時刻] [fav] [タイトル] [回数] / [URL] */
 .item--url {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1px 8px;
-  padding: 6px;
+  grid-template-columns: auto 18px 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  row-gap: 1px;
+  padding: 5px 6px;
   border-radius: var(--radius);
   cursor: pointer;
   transition: background var(--ease);
+}
+
+/* 訪問数順: [fav] [タイトル] [回数] / [URL]（時刻なし） */
+.item--url--no-time {
+  grid-template-columns: 18px 1fr auto;
 }
 
 .item--url:hover {
   background: var(--surface);
 }
 
+/* row 1 の各セルは DOM 順に auto-placement で配置 */
+.item__time {
+  font-size: 12px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  align-self: center;
+}
+
+.item__favicon {
+  width: 16px;
+  height: 16px;
+  align-self: center;
+  display: block;
+  border-radius: 2px;
+}
+
 .item__title {
-  grid-column: 1;
-  grid-row: 1;
   font-size: 13px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  align-self: center;
 }
 
-.item__url {
-  grid-column: 1;
-  grid-row: 2;
+.item--url .item__count {
+  align-self: center;
   font-size: 13px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+/* URL は row 2 に全列展開 */
+.item__url {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 12px;
   color: var(--text-sub);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.item--url .item__count {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  align-self: center;
-  font-size: 13px;
-  color: var(--text-sub);
 }
 
 /* Domain item */
@@ -373,6 +405,25 @@ body {
   background: #e1bee7;
 }
 
+/* ── Date group heading ──────────────────────────────────────────────────── */
+
+.list__date-heading {
+  padding: 8px 6px 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+  border-top: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+  list-style: none;
+}
+
+.list__date-heading:first-child {
+  border-top: none;
+}
+
 /* ── Virtual scroll sentinel ─────────────────────────────────────────────── */
 
 #url-sentinel {
@@ -414,6 +465,16 @@ body {
 
   .btn--sort:hover {
     background: #3c4043;
+  }
+
+  .btn--sort.is-active {
+    background: var(--primary);
+    color: #202124;
+    border-color: var(--primary);
+  }
+
+  .btn--sort.is-active:hover {
+    background: var(--primary-hover);
   }
 
   .btn--group {

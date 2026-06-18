@@ -49,5 +49,7 @@
   "errDedupFailed": {
     "message": "Failed to deduplicate: $ERROR$",
     "placeholders": { "error": { "content": "$1" } }
-  }
+  },
+  "dateToday": { "message": "Today" },
+  "dateYesterday": { "message": "Yesterday" }
 }

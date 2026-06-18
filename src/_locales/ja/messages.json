@@ -49,5 +49,7 @@
   "errDedupFailed": {
     "message": "重複解消に失敗しました: $ERROR$",
     "placeholders": { "error": { "content": "$1" } }
-  }
+  },
+  "dateToday": { "message": "今日" },
+  "dateYesterday": { "message": "昨日" }
 }
